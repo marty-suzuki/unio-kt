@@ -11,7 +11,8 @@ abstract class Unio<
     input: Input,
     extra: Extra,
     state: State,
-    viewModelScope: CoroutineScope
+    viewModelScope: CoroutineScope,
+
 ) : UnioProperties<Input, Output>, UnioBinder<Input, Output, Extra, State> {
     interface Input
     interface Output
