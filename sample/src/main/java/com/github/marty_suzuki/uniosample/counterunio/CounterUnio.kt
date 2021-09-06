@@ -2,8 +2,13 @@ package com.github.marty_suzuki.uniosample.counterunio
 
 import com.github.marty_suzuki.unio.Dependency
 import com.github.marty_suzuki.unio.Unio
+import com.github.marty_suzuki.unio.UnioFactory
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -12,11 +17,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 
 @ExperimentalCoroutinesApi
-class CounterUnio(
+class CounterUnio @AssistedInject constructor(
     input: CounterUnioInput,
     state: State,
-    extra: Extra,
-    viewModelScope: CoroutineScope,
+    @Assisted viewModelScope: CoroutineScope,
+    @Assisted onCleared: Flow<Unit>,
 ) : Unio<
         CounterUnioInput,
         CounterUnioOutput,
@@ -24,16 +29,31 @@ class CounterUnio(
         CounterUnio.State
         >(
     input = input,
-    extra = extra,
+    extra = Extra(
+        startValue = 5,
+        onCleared = onCleared
+    ),
     state = state,
     viewModelScope = viewModelScope
 ) {
+
+    @AssistedFactory
+    interface Factory: UnioFactory<CounterUnioInput, CounterUnioOutput> {
+        override fun create(
+            @Assisted viewModelScope: CoroutineScope,
+            @Assisted onCleared: Flow<Unit>,
+        ): CounterUnio
+    }
+
     class State : Unio.State {
         val count = MutableStateFlow(0)
         val isCountDownEnabled = MutableStateFlow(false)
     }
 
-    class Extra(val startValue: Int) : Unio.Extra
+    class Extra(
+        val startValue: Int,
+        val onCleared: Flow<Unit>,
+    ) : Unio.Extra
 
     override fun bind(
         dependency: Dependency<CounterUnioInput, Extra, State>,

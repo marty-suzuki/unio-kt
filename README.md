@@ -278,28 +278,42 @@ class CounterViewModel @Inject constructor(
 ```
 
 ```kotlin
-class CounterUnioFactoryImpl @Inject constructor() : UnioFactory<CounterUnioInput, CounterUnioOutput> {
+class CounterUnio @AssistedInject constructor(
+    input: CounterUnioInput,
+    state: State,
+    @Assisted viewModelScope: CoroutineScope,
+    @Assisted onCleared: Flow<Unit>,
+) : Unio<...>(...) { ... }
+```
+
+```kotlin
+@AssistedFactory
+interface CounterUnioFactory: UnioFactory<CounterUnioInput, CounterUnioOutput> {
     override fun create(
-        viewModelScope: CoroutineScope,
-        onCleared: Flow<Unit>,
-    ) = CounterUnio(
-        input = CounterUnioInput(),
-        state = CounterUnio.State(),
-        extra = CounterUnio.Extra(5),
-        viewModelScope = viewModelScope
-    )
+        @Assisted viewModelScope: CoroutineScope,
+        @Assisted onCleared: Flow<Unit>,
+    ): CounterUnio
 }
 ```
 
 ```kotlin
 @Module
 @InstallIn(ViewModelComponent::class)
-interface ViewModelModule {
+interface ViewModelBindModule {
     @Binds
-    @CounterUnioFactory
-    fun bindUnioFactory(
-        unioFactory: CounterUnioFactoryImpl
+    fun bindCounterUnioFactory(
+        unioFactory: CounterUnioFactory,
     ): UnioFactory<CounterUnioInput, CounterUnioOutput>
+}
+
+@Module
+@InstallIn(ViewModelComponent::class)
+object ViewModelProvideModule {
+    @Provides
+    fun provideCounterUnioInput() = CounterUnioInput()
+
+    @Provides
+    fun provideCounterUnioState() = CounterUnio.State()
 }
 ```
 
