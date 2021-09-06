@@ -1,8 +1,10 @@
 # unio-kt
 
+[![](https://jitpack.io/v/marty-suzuki/unio-kt.svg)](https://jitpack.io/#marty-suzuki/unio-kt)
+
 ## Introduction
 
-Ordinary ViewModels might be implemented like this. But those implementation are not clear, for exmple which are states and which are dependencies and so on.
+Ordinary ViewModels might be implemented like this. But those implementation are not clear, for example which are states and which are dependencies and so on.
 
 ```kotlin
 class CounterViewModel : ViewModel() {
@@ -191,7 +193,10 @@ The rule of UnioFactory is generating [Unio](#unio).
 
 ```kotlin
 class CounterUnioFactoryImpl : UnioFactory<CounterUnioInput, CounterUnioOutput> {
-    override fun create(viewModelScope: CoroutineScope) = CounterUnio(
+    override fun create(
+        viewModelScope: CoroutineScope,
+        onCleared: Flow<Unit>,
+    ) = CounterUnio(
         input = CounterUnioInput(),
         state = CounterUnio.State(),
         extra = CounterUnio.Extra(5),
@@ -274,7 +279,10 @@ class CounterViewModel @Inject constructor(
 
 ```kotlin
 class CounterUnioFactoryImpl @Inject constructor() : UnioFactory<CounterUnioInput, CounterUnioOutput> {
-    override fun create(viewModelScope: CoroutineScope) = CounterUnio(
+    override fun create(
+        viewModelScope: CoroutineScope,
+        onCleared: Flow<Unit>,
+    ) = CounterUnio(
         input = CounterUnioInput(),
         state = CounterUnio.State(),
         extra = CounterUnio.Extra(5),
@@ -318,7 +326,7 @@ In your app `build.gradle`:
 implementation 'com.github.marty-suzuki:unio-kt:0.1.0'
 ```
 
-When import `unio-ki`, *Hyphone (marty-suzuki)* is wrong, **Underscore (marty_suzuki)** is correct.
+When import `unio-kt`, *Hyphone (marty-suzuki)* is wrong, **Underscore (marty_suzuki)** is correct.
 (`import com.github.marty_suzuki.unio.*`)
 
 ## Related
