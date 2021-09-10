@@ -128,7 +128,7 @@ class Extra(val githubApi: GitHubhAPI): Unio.Extra
 ### Unio
 
 The rule of Unio is generating [Unio.Output](#uniooutput) from Dependency<Input, State, Extra>.
-It generates [Unio.Output](#uniooutput) to call `Unio#bind`.
+It generates [Unio.Output](#uniooutput) to call `OutputFactory#create`.
 It is called once when [Unio](#unio) is initialized.
 
 ```kotlin
@@ -146,11 +146,12 @@ class CounterUnio(
     input = input,
     extra = extra,
     state = state,
+    outputFactory = CounterUnio,
     viewModelScope = viewModelScope
 )
 ```
 
-Connect sequences and generate [Unio.Output](#uniooutput) in `Unio#bind` to use below properties and methods.
+Connect sequences and generate [Unio.Output](#uniooutput) in `OutputFactory#create` to use below properties and methods.
 
 - `Dependency#state`
 - `Dependency#extra`
@@ -160,30 +161,37 @@ Connect sequences and generate [Unio.Output](#uniooutput) in `Unio#bind` to use 
 Here is a exmaple of implementation.
 
 ```kotlin
-override fun bind(
-    dependency: Dependency<CounterUnioInput, Extra, State>,
-    viewModelScope: CoroutineScope
-): CounterUnioOutput {
-    val state = dependency.state
-    val extra = dependency.extra
+companion object : OutputFactory<
+        CounterUnioInput,
+        CounterUnioOutput,
+        Extra,
+        State
+        > {
+    override fun create(
+        dependency: Dependency<CounterUnioInput, Extra, State>,
+        viewModelScope: CoroutineScope
+    ): CounterUnioOutput {
+        val state = dependency.state
+        val extra = dependency.extra
 
-    listOf(
-        dependency.getFlow(CounterUnioInput::countUp).map { 1 },
-        dependency.getFlow(CounterUnioInput::countDown).map { -1 }
-    )
-        .merge()
-        .map { state.count.value + it }
-        .onStart { emit(extra.startValue) }
-        .onEach {
-            state.count.emit(it)
-            state.isCountDownEnabled.emit(it > 0)
-        }
-        .launchIn(viewModelScope)
+        listOf(
+            dependency.getFlow(CounterUnioInput::countUp).map { 1 },
+            dependency.getFlow(CounterUnioInput::countDown).map { -1 }
+        )
+            .merge()
+            .map { state.count.value + it }
+            .onStart { emit(extra.startValue) }
+            .onEach {
+                state.count.emit(it)
+                state.isCountDownEnabled.emit(it > 0)
+            }
+            .launchIn(viewModelScope)
 
-    return CounterUnioOutput(
-        count = state.count.map { it.toString() },
-        isCountDownEnabled = state.isCountDownEnabled,
-    )
+        return CounterUnioOutput(
+            count = state.count.map { it.toString() },
+            isCountDownEnabled = state.isCountDownEnabled,
+        )
+    }
 }
 ```
 
@@ -337,7 +345,7 @@ dependencyResolutionManagement {
 In your app `build.gradle`:
 
 ```
-implementation 'com.github.marty-suzuki:unio-kt:0.1.0'
+implementation 'com.github.marty-suzuki:unio-kt:TAG'
 ```
 
 When import `unio-kt`, *Hyphone (marty-suzuki)* is wrong, **Underscore (marty_suzuki)** is correct.
