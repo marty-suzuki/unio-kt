@@ -11,9 +11,10 @@ abstract class Unio<
     input: Input,
     extra: Extra,
     state: State,
+    outputFactory: OutputFactory<Input, Output, Extra, State>,
     viewModelScope: CoroutineScope,
 
-) : UnioProperties<Input, Output>, UnioBinder<Input, Output, Extra, State> {
+) : UnidirectionalIO<Input, Output> {
     interface Input
     interface Output
     interface Extra
@@ -27,19 +28,5 @@ abstract class Unio<
         input = input,
         extra = extra,
         state = state,
-    ).let { OutputProxy(bind(it, viewModelScope)) }
-}
-
-interface UnioProperties<Input : Unio.Input, Output : Unio.Output> {
-    val input: InputProxy<Input>
-    val output: OutputProxy<Output>
-}
-
-interface UnioBinder<
-        Input : Unio.Input,
-        Output : Unio.Output,
-        Extra : Unio.Extra,
-        State : Unio.State
-        > {
-    fun bind(dependency: Dependency<Input, Extra, State>, viewModelScope: CoroutineScope): Output
+    ).let { OutputProxy(outputFactory.create(it, viewModelScope)) }
 }

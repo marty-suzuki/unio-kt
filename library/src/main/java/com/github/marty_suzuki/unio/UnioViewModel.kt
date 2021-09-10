@@ -3,11 +3,12 @@ package com.github.marty_suzuki.unio
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import java.lang.Exception
 
 open class UnioViewModel<Input : Unio.Input, Output : Unio.Output>(
     unioFactory: UnioFactory<Input, Output>
-) : ViewModel(), UnioProperties<Input, Output> {
+) : ViewModel(), UnidirectionalIO<Input, Output> {
 
     override val input: InputProxy<Input>
         get() = unio.input

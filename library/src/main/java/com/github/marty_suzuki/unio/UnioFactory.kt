@@ -7,5 +7,5 @@ interface UnioFactory<Input : Unio.Input, Output : Unio.Output> {
     fun create(
         viewModelScope: CoroutineScope,
         onCleared: Flow<Unit>,
-    ): UnioProperties<Input, Output>
+    ): UnidirectionalIO<Input, Output>
 }
