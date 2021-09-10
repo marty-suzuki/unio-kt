@@ -1,6 +1,7 @@
 package com.github.marty_suzuki.uniosample.counterunio
 
 import com.github.marty_suzuki.unio.Dependency
+import com.github.marty_suzuki.unio.OutputFactory
 import com.github.marty_suzuki.unio.Unio
 import com.github.marty_suzuki.unio.UnioFactory
 import dagger.assisted.Assisted
@@ -34,6 +35,7 @@ class CounterUnio @AssistedInject constructor(
         onCleared = onCleared
     ),
     state = state,
+    outputFactory = CounterUnio,
     viewModelScope = viewModelScope
 ) {
 
@@ -55,29 +57,36 @@ class CounterUnio @AssistedInject constructor(
         val onCleared: Flow<Unit>,
     ) : Unio.Extra
 
-    override fun bind(
-        dependency: Dependency<CounterUnioInput, Extra, State>,
-        viewModelScope: CoroutineScope
-    ): CounterUnioOutput {
-        val state = dependency.state
-        val extra = dependency.extra
+    companion object : OutputFactory<
+            CounterUnioInput,
+            CounterUnioOutput,
+            Extra,
+            State
+            > {
+        override fun create(
+            dependency: Dependency<CounterUnioInput, Extra, State>,
+            viewModelScope: CoroutineScope
+        ): CounterUnioOutput {
+            val state = dependency.state
+            val extra = dependency.extra
 
-        listOf(
-            dependency.getFlow(CounterUnioInput::countUp).map { 1 },
-            dependency.getFlow(CounterUnioInput::countDown).map { -1 }
-        )
-            .merge()
-            .map { state.count.value + it }
-            .onStart { emit(extra.startValue) }
-            .onEach {
-                state.count.emit(it)
-                state.isCountDownEnabled.emit(it > 0)
-            }
-            .launchIn(viewModelScope)
+            listOf(
+                dependency.getFlow(CounterUnioInput::countUp).map { 1 },
+                dependency.getFlow(CounterUnioInput::countDown).map { -1 }
+            )
+                .merge()
+                .map { state.count.value + it }
+                .onStart { emit(extra.startValue) }
+                .onEach {
+                    state.count.emit(it)
+                    state.isCountDownEnabled.emit(it > 0)
+                }
+                .launchIn(viewModelScope)
 
-        return CounterUnioOutput(
-            count = state.count.map { it.toString() },
-            isCountDownEnabled = state.isCountDownEnabled,
-        )
+            return CounterUnioOutput(
+                count = state.count.map { it.toString() },
+                isCountDownEnabled = state.isCountDownEnabled,
+            )
+        }
     }
 }
